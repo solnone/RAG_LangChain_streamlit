@@ -3,7 +3,8 @@ from pathlib import Path
 
 from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 from langchain_openai import ChatOpenAI
-from langchain_community.document_loaders import DirectoryLoader
+# from langchain_community.document_loaders import DirectoryLoader
+from langchain_community.document_loaders.pdf import PyPDFDirectoryLoader
 from langchain_community.vectorstores import Chroma
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
@@ -13,6 +14,9 @@ from langchain.memory import ConversationBufferMemory
 import streamlit as st
 
 TMP_DIR = Path(__file__).resolve().parent.joinpath('data', 'tmp')
+if not os.path.exists(TMP_DIR.as_posix()):
+    os.makedirs(TMP_DIR.as_posix())
+
 LOCAL_VECTOR_STORE_DIR = Path(__file__).resolve().parent.joinpath('data', 'vector_store')
 
 st.set_page_config(page_title="RAG")
@@ -21,16 +25,17 @@ mode = st.sidebar.radio(
     "LLM type：",
     ('Your own LLM', 'openAI'))
 if mode == 'Your own LLM':
-    openai_api_base = st.sidebar.text_input('URL:', type='default')
+    openai_api_base = st.sidebar.text_input('URL:', value='http://localhost:11434/v1')
     openai_api_key = 'None'
+    model = st.sidebar.text_input('Model:', value='llama3.1:8b')
 elif mode == 'openAI':
     openai_api_base = st.sidebar.text_input('api_base:', type='password')
     openai_api_key = st.sidebar.text_input('key:', type='password')
-
-
+    model = st.sidebar.text_input('Model:', value='gpt-4o-mini')
 
 def load_documents():
-    loader = DirectoryLoader(TMP_DIR.as_posix(), glob='**/*.pdf')
+    # loader = DirectoryLoader(TMP_DIR.as_posix(), glob='**/*.pdf')
+    loader = PyPDFDirectoryLoader(TMP_DIR.as_posix(), glob='**/*.pdf')
     documents = loader.load()
     return documents
 
@@ -51,7 +56,7 @@ def embeddings_on_local_vectordb(texts):
     return retriever
 
 def define_llm():
-    llm = ChatOpenAI(openai_api_key=openai_api_key, openai_api_base=openai_api_base)
+    llm = ChatOpenAI(openai_api_key=openai_api_key, openai_api_base=openai_api_base, model=model)
     return llm
 
 def query_llm(retriever, query):
@@ -119,11 +124,11 @@ def boot():
     st.button("Submit Documents", on_click=process_documents)
     #
     if "messages" not in st.session_state:
-        st.session_state.messages = []    
+        st.session_state.messages = []
     #
     for message in st.session_state.messages:
         st.chat_message('human').write(message[0])
-        st.chat_message('ai').write(message[1])    
+        st.chat_message('ai').write(message[1])
     #
     if query := st.chat_input():
         st.chat_message("human").write(query)
