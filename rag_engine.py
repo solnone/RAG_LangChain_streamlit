@@ -3,10 +3,11 @@ from pathlib import Path
 
 from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 from langchain_openai import ChatOpenAI
-# from langchain_community.document_loaders import DirectoryLoader
+from langchain_community.document_loaders import DirectoryLoader
 from langchain_community.document_loaders.pdf import PyPDFDirectoryLoader
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
+# from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.memory import ConversationBufferMemory
@@ -34,10 +35,10 @@ elif mode == 'openAI':
     model = st.sidebar.text_input('Model:', value='gpt-4o-mini')
 
 def load_documents():
-    # loader = DirectoryLoader(TMP_DIR.as_posix(), glob='**/*.pdf')
-    loader = PyPDFDirectoryLoader(TMP_DIR.as_posix(), glob='**/*.pdf')
-    documents = loader.load()
-    return documents
+    try:
+        return DirectoryLoader(TMP_DIR.as_posix(), glob='**/*.pdf').load()
+    except:
+        return PyPDFDirectoryLoader(TMP_DIR.as_posix(), glob='**/*.pdf').load()
 
 def split_documents(documents):
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=10)
@@ -49,8 +50,7 @@ def embeddings_on_local_vectordb(texts):
     model_kwargs = {'device': 'cpu'}
     embeddings = HuggingFaceEmbeddings(model_name=model_name,
                                     model_kwargs=model_kwargs)
-    vectordb = Chroma.from_documents(texts, embedding=embeddings,
-                                     persist_directory=LOCAL_VECTOR_STORE_DIR.as_posix())
+    vectordb = Chroma.from_documents(texts, embedding=embeddings, persist_directory=LOCAL_VECTOR_STORE_DIR.as_posix())
     vectordb.persist()
     retriever = vectordb.as_retriever(search_kwargs={'k': 7})
     return retriever

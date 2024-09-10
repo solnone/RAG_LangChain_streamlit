@@ -38,11 +38,22 @@ Before running the project, make sure you have the following prerequisites:
    ```
 
 2. Install the required dependencies by running:
+
    ```bash
    pip install -r requirements.txt
    ```
 
+   [python-magic for Windows](https://pypi.org/project/python-magic/)
+   You'll need DLLs for libmagic. @julian-r maintains a pypi package with the DLLs, you can fetch it with:
+
+   ```bash
+   pip install python-magic-bin
+   ```
+
+   [python - Langchain UnstructuredURLLoader shows Libmagic Unavailble - Stack Overflow](https://stackoverflow.com/questions/77475671/langchain-unstructuredurlloader-shows-libmagic-unavailble)
+
 3. Run the Streamlit app:
+
    ```bash
    streamlit run rag_engine.py
    ```

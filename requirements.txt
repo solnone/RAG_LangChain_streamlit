@@ -1,7 +1,8 @@
 langchain
 streamlit
-# unstructured
-# unstructured[pdf]
+# python-magic-bin
+unstructured
+unstructured[pdf]
 pypdf
 # openai
 chromadb
@@ -9,3 +10,4 @@ chromadb
 sentence-transformers
 langchain-community
 langchain-openai
+langchain-huggingface
