@@ -51,7 +51,7 @@ def embeddings_on_local_vectordb(texts):
     embeddings = HuggingFaceEmbeddings(model_name=model_name,
                                     model_kwargs=model_kwargs)
     vectordb = Chroma.from_documents(texts, embedding=embeddings, persist_directory=LOCAL_VECTOR_STORE_DIR.as_posix())
-    vectordb.persist()
+    # vectordb.persist()
     retriever = vectordb.as_retriever(search_kwargs={'k': 7})
     return retriever
 
@@ -65,7 +65,7 @@ def query_llm(retriever, query):
         retriever=retriever,
         return_source_documents=True,
     )
-    result = qa_chain({'question': query, 'chat_history': st.session_state.messages})
+    result = qa_chain.invoke({'question': query, 'chat_history': st.session_state.messages})
     result = result['answer']
     st.session_state.messages.append((query, result))
     return result
