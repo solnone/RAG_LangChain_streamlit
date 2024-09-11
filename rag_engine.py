@@ -1,4 +1,5 @@
 import os, tempfile
+import re
 from pathlib import Path
 
 import ollama
@@ -49,8 +50,8 @@ def split_documents(documents):
     return texts
 
 def embeddings_on_local_vectordb(texts):
-    if model == 'llama3.1':
-        embeddings = OllamaEmbeddings(model='llama3.1', base_url='http://localhost:11434')
+    if mode == 'Your own LLM':
+        embeddings = OllamaEmbeddings(model=model, base_url=re.sub('/v1$', '', openai_api_base))
     else:
         model_name = "sentence-transformers/all-MiniLM-L6-v2"
         model_kwargs = {'device': 'cpu'}
