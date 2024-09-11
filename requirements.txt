@@ -11,3 +11,4 @@ sentence-transformers
 langchain-community
 langchain-openai
 langchain-huggingface
+langchain-ollama

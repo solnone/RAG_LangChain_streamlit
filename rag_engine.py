@@ -1,13 +1,16 @@
 import os, tempfile
 from pathlib import Path
 
+import ollama
 from langchain.chains import RetrievalQA, ConversationalRetrievalChain
 from langchain_openai import ChatOpenAI
+from langchain_ollama.llms import OllamaLLM
 from langchain_community.document_loaders import DirectoryLoader
 from langchain_community.document_loaders.pdf import PyPDFDirectoryLoader
 from langchain_community.vectorstores import Chroma
 # from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_ollama import OllamaEmbeddings
 from langchain_community.chat_message_histories import StreamlitChatMessageHistory
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.memory import ConversationBufferMemory
@@ -28,7 +31,7 @@ mode = st.sidebar.radio(
 if mode == 'Your own LLM':
     openai_api_base = st.sidebar.text_input('URL:', value='http://localhost:11434/v1')
     openai_api_key = 'None'
-    model = st.sidebar.text_input('Model:', value='llama3.1:8b')
+    model = st.sidebar.text_input('Model:', value='llama3.1')
 elif mode == 'openAI':
     openai_api_base = st.sidebar.text_input('api_base:', type='password')
     openai_api_key = st.sidebar.text_input('key:', type='password')
@@ -46,10 +49,13 @@ def split_documents(documents):
     return texts
 
 def embeddings_on_local_vectordb(texts):
-    model_name = "sentence-transformers/all-MiniLM-L6-v2"
-    model_kwargs = {'device': 'cpu'}
-    embeddings = HuggingFaceEmbeddings(model_name=model_name,
-                                    model_kwargs=model_kwargs)
+    if model == 'llama3.1':
+        embeddings = OllamaEmbeddings(model='llama3.1', base_url='http://localhost:11434')
+    else:
+        model_name = "sentence-transformers/all-MiniLM-L6-v2"
+        model_kwargs = {'device': 'cpu'}
+        embeddings = HuggingFaceEmbeddings(model_name=model_name, model_kwargs=model_kwargs)
+    
     vectordb = Chroma.from_documents(texts, embedding=embeddings, persist_directory=LOCAL_VECTOR_STORE_DIR.as_posix())
     # vectordb.persist()
     retriever = vectordb.as_retriever(search_kwargs={'k': 7})
